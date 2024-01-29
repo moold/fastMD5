@@ -132,54 +132,30 @@ fn check_md5_workers(opt: &Opt) -> bool {
             }
         });
 
-        // (0..opt.thread).for_each(|_| {
-        //     let in_r = in_r.clone();
-        //     let ou_s = ou_s.clone();
-        //     work.spawn(move |_| {
-        //         while let Ok(line) = in_r.recv() {
-        //             let lines: Vec<&str> = line.split_ascii_whitespace().collect();
-        //             let (md5_str, path) = (lines[0], lines[1].to_owned());
-        //             let md5 = if md5_str.len() == 32 {
-        //                 md5(&path, 0)
-        //             }else if md5_str.len() == 33 {
-        //                 let speed_pos = md5_str.len() - 1;
-        //                 md5(&path, md5_str[speed_pos..=speed_pos].parse::<u64>().unwrap())
-        //             }else {
-        //                 eprintln!("Improperly formatted MD5 checksum line: {}", line);
-        //                 if opt.strict {
-        //                     std::process::exit(1);
-        //                 }
-        //                 continue;
-        //             };
-        //             ou_s.send((path, md5 == md5_str)).unwrap();
-        //         }
-        //     });
-        // });
-
-        work.spawn(move |_| {
-            thread::scope(|scoped| {
-                (0..opt.thread).for_each(|_| {
-                    let in_r = in_r.clone();
-                    let ou_s = ou_s.clone();
-                    scoped.spawn(move |_| {
-                        while let Ok(line) = in_r.recv() {
-                            let lines: Vec<&str> = line.split("  ").collect();
-                            let (md5_str, path) = (lines[0], lines[1].to_owned());
-                            let md5 = if md5_str.len() == 32 {
-                                md5(&path, 0)
-                            }else if md5_str.len() == 33 {
-                                let speed_pos = md5_str.len() - 1;
-                                md5(&path, md5_str[speed_pos..=speed_pos].parse::<u64>().unwrap())
-                            }else {
-                                eprintln!("Improperly formatted MD5 checksum line: {}", line);
-                                std::process::exit(1);
-                            };
-                            ou_s.send((path, md5 == md5_str)).unwrap();
+        (0..opt.thread).for_each(|_| {
+            let in_r = in_r.clone();
+            let ou_s = ou_s.clone();
+            work.spawn(move |_| {
+                while let Ok(line) = in_r.recv() {
+                    let lines: Vec<&str> = line.split_ascii_whitespace().collect();
+                    let (md5_str, path) = (lines[0], lines[1].to_owned());
+                    let md5 = if md5_str.len() == 32 {
+                        md5(&path, 0)
+                    }else if md5_str.len() == 33 {
+                        let speed_pos = md5_str.len() - 1;
+                        md5(&path, md5_str[speed_pos..=speed_pos].parse::<u64>().unwrap())
+                    }else {
+                        eprintln!("Improperly formatted MD5 checksum line: {}", line);
+                        if opt.strict {
+                            std::process::exit(1);
                         }
-                    });
-                });
-            }).unwrap();
+                        continue;
+                    };
+                    ou_s.send((path, md5 == md5_str)).unwrap();
+                }
+            });
         });
+        drop(ou_s);
 
         work.spawn(move |_| {
             let mut has_failed = false;
