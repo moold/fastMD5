@@ -21,7 +21,12 @@ static GLOBAL: Jemalloc = Jemalloc;
 const MIN_READ_SIZE: u64 = 1024000;
 
 pub fn md5<P: AsRef<Path>>(path: P, speed: u64) -> String {//here, buffer reader is slower
-    let mut f = File::open(&path).unwrap_or_else(|_| panic!("Failed open file: {}", path.as_ref().display()));
+    // let mut f = File::open(&path).unwrap_or_else(|_| panic!("Failed open file: {}", path.as_ref().display()));
+    let mut f = match File::open(&path) {
+        Ok(f) => f,
+        Err(_) => return String::new(),
+    };
+
     thread::scope(|work| {
         let (in_s, in_r) = bounded(0);
         if speed != 0 {
@@ -115,7 +120,11 @@ fn get_md5_workers(opt: &Opt) {
 
         work.spawn(move |_| {
             while let Ok((path, md5)) = ou_r.recv() {
-                println!("{md5}  {}", path.display());
+                if md5.is_empty(){
+                    println!("{}: FAILED open or read", path.display());
+                }else{
+                    println!("{md5}  {}", path.display());
+                }
             }
         });
     }).unwrap();
@@ -151,7 +160,11 @@ fn check_md5_workers(opt: &Opt) -> bool {
                         }
                         continue;
                     };
-                    ou_s.send((path, md5 == md5_str)).unwrap();
+                    if md5.is_empty(){
+                        ou_s.send((path, Err(()))).unwrap();
+                    }else{
+                        ou_s.send((path, Ok(md5 == md5_str))).unwrap();
+                    }
                 }
             });
         });
@@ -160,17 +173,25 @@ fn check_md5_workers(opt: &Opt) -> bool {
         work.spawn(move |_| {
             let mut has_failed = false;
             while let Ok((path, status)) = ou_r.recv() {
-                if opt.status {
-                    if !status {
-                        std::process::exit(1);
+                match status {
+                    Ok(status) => {
+                        if opt.status {
+                            if !status {
+                                std::process::exit(1);
+                            }
+                        }else if status {
+                            if !opt.quiet {
+                                println!("{path}: OK");
+                            }
+                        }else {
+                            println!("{path}: FAILED");
+                            has_failed = true;
+                        }
+                    },
+                    Err(_) => {
+                        println!("{path}: FAILED open or read");
+                        has_failed = true;
                     }
-                }else if status {
-                    if !opt.quiet {
-                        println!("{path}: OK");
-                    }
-                }else {
-                    println!("{path}: FAILED");
-                    has_failed = true;
                 }
             }
             has_failed
