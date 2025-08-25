@@ -1,15 +1,19 @@
 [package]
 name = "fastmd5"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+blake3 = "1.8.2"
 clap = { version = "4.4.18", features = ["string"] }
 crossbeam-channel = "0.5.11"
 crossbeam-utils = "0.8.19"
+hex = "0.4.3"
 md-5 = "0.10.6"
+mimalloc = "0.1.47"
+openssl = { version = "0.10.73", features = ["vendored"] }
 walkdir = "2.4.0"
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]

@@ -2,6 +2,7 @@ use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
 
 const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
+#[allow(dead_code)]
 #[derive(Clone, Debug)]
 pub struct Option {
     pub dest: String,
@@ -25,7 +26,7 @@ impl Option {
         let opt = Option::default();
         let args = Command::new("fastmd5")
             .version(VERSION)
-            .about("Print or check MD5 (128-bit) checksums.\nReport bug to huj@grandomics.com")
+            .about("Print or check MD5 (128-bit) checksums.\nFor more information, see https://github.com/moold/fastMD5")
             .arg_required_else_help(true)
             .arg(
                 Arg::new("dest")
