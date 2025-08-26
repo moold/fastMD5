@@ -4,13 +4,13 @@
 
 ## Key Features
 
-* 🚀 **Adjustable speed levels (0–9)**
+- [x] 🚀 **Adjustable speed levels (0–9)**
   * **0** – Full sequential computation, \~20% faster than GNU `md5sum`, fully compatible with it.
   * **1** – Full-file computation with optimized performance, up to **> 4× faster** than GNU `md5sum`.
   * **2–9** – Block-based sampling for approximate checksums. For example, a file >100 GB can be processed in **under 1 second**.
-* 🧵 **Multi-threaded execution** – Leverages multi-core CPUs for even faster performance.
-* 📂 **Recursive directory support** – Optionally include hidden files and symbolic links.
-* ✅ **Checksum verification mode (`--check`)** – Validate files against precomputed MD5 sums.
+- [x] 🧵 **Multi-threaded execution** – Leverages multi-core CPUs for even faster performance.
+- [x] 📂 **Recursive directory support** – Optionally include hidden files and symbolic links.
+- [x] ✅ **Checksum verification mode (`--check`)** – Validate files against precomputed MD5 sums.
 
 
 ## Getting Started
