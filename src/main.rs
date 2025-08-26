@@ -24,17 +24,18 @@ fn hash_full_md5(path: &Path) -> io::Result<String> {//here, buffer reader is sl
     use md5::{Digest, Md5};
     thread::scope(|work| {
         let (in_s, in_r) = bounded(4);
-        work.spawn(move || {
-            let mut f = File::open(path).expect("Failed open file!");
+        work.spawn(move || -> io::Result<()> {
+            let mut f = File::open(path)?;
             let mut buf = vec![0u8; 2 * MIN_READ_SIZE];
 
             loop {
-                let n = f.read(&mut buf).expect("Failed read file!");
+                let n = f.read(&mut buf)?;
                 if n == 0 {
                     break;
                 }
-                in_s.send(buf[..n].to_owned()).expect("Failed send data!");
+                in_s.send(buf[..n].to_owned()).unwrap();
             }
+            Ok(())
         });
 
         let mut hasher = Md5::new();
@@ -49,17 +50,18 @@ fn hash_full_openssl_md5(path: &Path) -> io::Result<String> {
     use openssl::hash::{Hasher, MessageDigest};
     thread::scope(|work| {
         let (in_s, in_r) = bounded(4);
-        work.spawn(move || {
-            let mut f = File::open(path).unwrap();
+        work.spawn(move || -> io::Result<()> {
+            let mut f = File::open(path)?;
             let mut buf = vec![0u8; MIN_READ_SIZE];
 
             loop {
-                let n = f.read(&mut buf).unwrap();
+                let n = f.read(&mut buf)?;
                 if n == 0 {
                     break;
                 }
                 in_s.send(buf[..n].to_owned()).unwrap();
             }
+            Ok(())
         });
 
         let mut hasher = Hasher::new(MessageDigest::md5()).unwrap();
@@ -195,22 +197,24 @@ fn get_hash_workers(opt: &Opt) {
     thread::scope(|work| {
         let (in_s, in_r) = bounded(opt.thread * 4);
         work.spawn(move || {
-            for entry in WalkDir::new(&opt.dest)
-                .follow_links(opt.link)
-                .into_iter()
-                .filter_entry(|e| {
-                    (opt.link || !e.path_is_symlink())
-                        && (opt.hidden
-                            || !e
-                                .file_name()
-                                .to_str()
-                                .map(|s| s.starts_with('.') && s != "." && !s.starts_with("./") && !s.starts_with(".."))
-                                .unwrap_or(false))
-                })
-                .filter_map(|x| x.ok())
-            {
-                if entry.file_type().is_file() {
-                    in_s.send(entry.path().to_path_buf()).ok();
+            for file in opt.dest.iter(){
+                for entry in WalkDir::new(file)
+                    .follow_links(opt.link)
+                    .into_iter()
+                    .filter_entry(|e| {
+                        (opt.link || !e.path_is_symlink())
+                            && (opt.hidden
+                                || !e
+                                    .file_name()
+                                    .to_str()
+                                    .map(|s| s.starts_with('.') && s != "." && !s.starts_with("./") && !s.starts_with(".."))
+                                    .unwrap_or(false))
+                    })
+                    .filter_map(|x| x.ok())
+                {
+                    if entry.file_type().is_file() {
+                        in_s.send(entry.path().to_path_buf()).ok();
+                    }
                 }
             }
         });
@@ -249,10 +253,12 @@ fn check_hash_workers(opt: &Opt) -> bool {
         let (ou_s, ou_r) = bounded(opt.thread * 4);
 
         work.spawn(move || {
-            for line in BufReader::new(File::open(&opt.dest).expect("Unable to read file")).lines() {
-                if let Ok(l) = line {
-                    if !l.trim().is_empty() {
-                        in_s.send(l).ok();
+            for file in opt.dest.iter(){
+                for line in BufReader::new(File::open(file).expect("Unable to read file")).lines() {
+                    if let Ok(l) = line {
+                        if !l.trim().is_empty() {
+                            in_s.send(l).ok();
+                        }
                     }
                 }
             }
