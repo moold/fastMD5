@@ -17,13 +17,13 @@
 
 ```bash
 # Compute MD5 checksums at the default speed level (5), typically used to verify file integrity after copying.
-fastMD5 -t 10 file1.fastq.gz file2.fastq.gz data_directory/
+fastmd5 -t 10 file1.fastq.gz file2.fastq.gz data_directory/
 # Run in the most accurate mode (level 0, equivalent to `md5sum`).
-fastMD5 -t 3 -s 0 file1.fastq.gz file2.fastq.gz data_directory/
+fastmd5 -t 3 -s 0 file1.fastq.gz file2.fastq.gz data_directory/
 # Run full-file computation with optimized performance (level 1).
-fastMD5 -t 5 -s 1 file1.fastq.gz file2.fastq.gz data_directory/
+fastmd5 -t 5 -s 1 file1.fastq.gz file2.fastq.gz data_directory/
 # Verify checksums from a checksum file (equivalent to `md5sum -c`).
-fastMD5 --check checksums.md5
+fastmd5 --check checksums.md5
 ```
 
 ## Table of Contents
@@ -64,30 +64,30 @@ cd test && bash hh.sh
 #### 1. Quickly verify the integrity of copied files
 ```bash
 # Generate checksum file (default speed level 5)
-fastMD5 -t 10 file1.fastq.gz file2.fastq.gz data_directory/ > checksums.md5  
+fastmd5 -t 10 file1.fastq.gz file2.fastq.gz data_directory/ > checksums.md5  
 
 # Verify against checksum file
-fastMD5 --check checksums.md5
+fastmd5 --check checksums.md5
 ```
 
 #### 2. Verify integrity of modified files (full-file mode)
 ```bash
 # Generate checksum file (speed level 1, full-file computation)
-fastMD5 -t 10 -s 1 file1.fastq.gz file2.fastq.gz data_directory/ > checksums.md5  
+fastmd5 -t 10 -s 1 file1.fastq.gz file2.fastq.gz data_directory/ > checksums.md5  
 
 # Verify against checksum file
-fastMD5 --check checksums.md5
+fastmd5 --check checksums.md5
 ```
 
 #### 3. Generate results fully compatible with GNU `md5sum`
 ```bash
 # Generate checksum file (speed level 0, GNU-compatible mode)
-fastMD5 -t 10 -s 0 file1.fastq.gz file2.fastq.gz data_directory/ > checksums.md5  
+fastmd5 -t 10 -s 0 file1.fastq.gz file2.fastq.gz data_directory/ > checksums.md5  
 # Equivalent GNU command
 ls file1.fastq.gz file2.fastq.gz data_directory/ | while read line; do md5sum $line >> checksums.md5; done  
 
 # Verify against checksum file
-fastMD5 --check checksums.md5  
+fastmd5 --check checksums.md5  
 # Equivalent GNU command
 md5sum -c checksums.md5
 ```
