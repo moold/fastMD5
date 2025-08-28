@@ -1,3 +1,5 @@
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/fastmd5/README.html)
+[![Conda Version](https://img.shields.io/conda/v/bioconda/fastMD5)](https://anaconda.org/bioconda/fastmd5)
 # fastMD5 - print or check MD5 checksums
 
 **fastMD5** is a high-performance MD5 checksum tool, designed as a faster and parallelized alternative to the standard `md5sum`. It offers flexible speed modes, multi-threading support, and efficient directory handling—making it especially well-suited for verifying very large files or entire directories.
@@ -34,11 +36,11 @@ fastmd5 --check checksums.md5
 - [Benchmarking](#benchmark)
 
 ### <a name="install"></a>Installation
-<!-- 
 #### Installing from bioconda
 ```sh
-conda install nextpolish2
-``` -->
+conda install bioconda::fastmd5
+```
+
 #### Installing from source
 ##### Dependencies
 
